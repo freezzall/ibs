@@ -1,7 +1,13 @@
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:ibsmobile/constants/constant.dart';
 import 'package:ibsmobile/pages/mainhome.dart';
 import 'package:ibsmobile/pages/setting.dart';
+
+import '../data/user.dart';
+import 'package:http/http.dart' as http;
 
 class loginPage extends StatefulWidget {
   loginPage({Key? key}) : super(key: key);
@@ -19,9 +25,49 @@ class _loginPageState extends State<loginPage> {
   TextEditingController usernameInput = new TextEditingController();
   TextEditingController passwordInput = new TextEditingController();
 
-  void prosesLogin() {
+  late user objUser;
+
+  Future<bool> doLogin(String szId, String szPassword) async {
+    final response = await http.post(
+      Uri.parse(constant.szAPI + 'login'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, String>{
+        'szId': szId,
+        'szPassword': szPassword
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      Map<String, dynamic> json = jsonDecode(response.body);
+      String result = json['szMessage'];
+
+      if(json['szStatus'] == "success") {
+        setState(() {
+          alert = result;
+          objUser = user.fromJson(json['oResult']);
+        });
+        return true;
+      }else{
+        setState(() {
+          alert = result;
+        });
+        return false;
+      }
+    } else {
+      setState((){
+        alert = 'Login Failed';
+      });
+      return false;
+    }
+  }
+
+  void prosesLogin() async {
     if(_formKey.currentState!.validate()){
-      if(usernameInput.text == username && passwordInput.text == password){
+      bool bCredentials = await doLogin(usernameInput.text, passwordInput.text);
+
+      if(bCredentials){
         Navigator.pushReplacement(context, MaterialPageRoute(
           builder: (context) => mainhomePage(username: usernameInput.text,)
         ));

@@ -4,6 +4,8 @@ import 'package:ibsmobile/pages/about.dart';
 import 'package:ibsmobile/pages/home.dart';
 import 'package:ibsmobile/pages/setting.dart';
 
+import 'logout.dart';
+
 class mainhomePage extends StatefulWidget {
   final String username;
 
@@ -18,7 +20,7 @@ class _mainhomePageState extends State<mainhomePage> {
     homePage(),
     aboutPage(),
     settingPage(),
-    // logoutPage(),
+    logoutPage(),
   ];
 
   @override
