@@ -16,45 +16,53 @@ class _settingPageState extends State<settingPage> {
         width: MediaQuery.of(context).size.width,
         color: Colors.white,
         child: SingleChildScrollView(
-          padding: const EdgeInsets.only(left: 8, right: 8),
           child: Column(
               mainAxisAlignment: MainAxisAlignment.end,
               children: <Widget>[
 
                 Container(
+
+                  decoration: BoxDecoration(
+                      image: DecorationImage(
+                          alignment: Alignment.topLeft,
+                          image: AssetImage("images/headersetting.png"), fit: BoxFit.fitWidth)),
                   width: 400,
                   height: 300,
-                  child: Image(
-                    image: AssetImage("images/setting.jpg"),
-                    ),
+
                   ),
                 Text("Setting", style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold ,color: Colors.black87),),
 
                 SizedBox(height: 20,),
 
-                TextFormField(
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(20.0)
+                Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: TextFormField(
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20.0)
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.black)
+                      ),
+                      labelText: "Host",
+                      labelStyle: TextStyle(color: Colors.black),
                     ),
-                    focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.black)
-                    ),
-                    labelText: "Host",
-                    labelStyle: TextStyle(color: Colors.black),
                   ),
                 ),
 
                 SizedBox(height: 20,),
 
-                Card(
-                  child: Container(
-                    height: 50,
-                    child: InkWell(
-                      splashColor: Colors.black,
-                      onTap: (){},
-                      child: Center(
-                        child: Icon(Icons.save_as, size: 40, color: Colors.black,),
+                Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Card(
+                    child: Container(
+                      height: 50,
+                      child: InkWell(
+                        splashColor: Colors.black,
+                        onTap: (){},
+                        child: Center(
+                          child: Icon(Icons.save_as, size: 40, color: Colors.black,),
+                        ),
                       ),
                     ),
                   ),

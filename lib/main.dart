@@ -1,9 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:ibsmobile/data/user.dart';
 import 'package:ibsmobile/pages/splashscreen.dart';
+import 'package:ibsmobile/providers/attendanceProvider.dart';
+import 'package:ibsmobile/providers/callPlanProvider.dart';
+import 'package:ibsmobile/providers/userProvider.dart';
+import 'package:provider/provider.dart';
+import 'package:provider/single_child_widget.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+      MultiProvider(
+        providers: providers,
+        child: MyApp()
+      )
+  );
 }
+
+List<SingleChildWidget> providers = [
+  ChangeNotifierProvider(create: (_) => userProvider()),
+  ChangeNotifierProvider(create: (_) => callplanProvider()),
+  ChangeNotifierProvider(create: (_) => AttendanceProvider()),
+];
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);

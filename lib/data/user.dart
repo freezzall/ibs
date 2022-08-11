@@ -1,4 +1,6 @@
-class user {
+import 'package:flutter/cupertino.dart';
+
+class user{
   String? szId;
   String? szName;
   String? szPassword;

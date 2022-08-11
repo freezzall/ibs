@@ -5,9 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:ibsmobile/constants/constant.dart';
 import 'package:ibsmobile/pages/mainhome.dart';
 import 'package:ibsmobile/pages/setting.dart';
+import 'package:ibsmobile/providers/userProvider.dart';
 
 import '../data/user.dart';
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
+
 
 class loginPage extends StatefulWidget {
   loginPage({Key? key}) : super(key: key);
@@ -26,6 +29,11 @@ class _loginPageState extends State<loginPage> {
   TextEditingController passwordInput = new TextEditingController();
 
   late user objUser;
+
+  @override
+  void initState(){
+    super.initState();
+  }
 
   Future<bool> doLogin(String szId, String szPassword) async {
     final response = await http.post(
@@ -69,7 +77,7 @@ class _loginPageState extends State<loginPage> {
 
       if(bCredentials){
         Navigator.pushReplacement(context, MaterialPageRoute(
-          builder: (context) => mainhomePage(username: usernameInput.text,)
+          builder: (context) => mainhomePage(objUser: objUser,)
         ));
       }else{
         setState(() {

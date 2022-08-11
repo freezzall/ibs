@@ -1,33 +1,30 @@
 import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
-import 'package:ibsmobile/data/callplan.dart';
+import 'package:ibsmobile/data/attendance.dart';
 import 'package:http/http.dart' as http;
 import 'package:ibsmobile/constants/constant.dart';
 
-class callplanProvider with ChangeNotifier {
-  Callplan model = Callplan();
+class AttendanceProvider with ChangeNotifier {
+  Attendance model = Attendance();
   bool loading = false;
 
-  getData(context, szId, date) async{
+  getData(context, szId) async{
     loading = true;
-    model = await getSingleData(context, szId, date);
+    model = await getSingleData(context, szId);
     loading = false;
 
     notifyListeners();
   }
 }
 
-Future<Callplan> getSingleData(context, szId, date) async{
-  Callplan result = Callplan();
+Future<Attendance> getSingleData(context, szId) async{
+  Attendance result = Attendance();
   try{
     final response = await http.get(
-      Uri.parse(constant.szAPI + 'getCallPlan'
+      Uri.parse(constant.szAPI + 'GetAttendance'
           + '?'
           +'szEmployeeId=' + szId.toString()
-          + '&'
-          +'dtmDoc='
-          + date.toString()
       ),
     );
 
@@ -37,7 +34,7 @@ Future<Callplan> getSingleData(context, szId, date) async{
 
       if (json['szStatus'] == "success") {
         var data = json['oResult'];
-        result = Callplan.fromJson(data[0]);
+        result = Attendance.fromJson(data);
       }else{
         print(msg);
       }

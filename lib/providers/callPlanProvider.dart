@@ -1,36 +1,35 @@
 import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
-import 'package:ibsmobile/data/user.dart';
+import 'package:ibsmobile/data/callplan.dart';
 import 'package:http/http.dart' as http;
 import 'package:ibsmobile/constants/constant.dart';
-import 'package:toast/toast.dart';
 
-class userProvider with ChangeNotifier {
-  user model = user();
+class callplanProvider with ChangeNotifier {
+  Callplan model = Callplan();
   bool loading = false;
 
-  getData(context, szId, szPassword) async{
+  getData(context, szId, date) async{
     loading = true;
-    model = await getSingleData(context, szId, szPassword);
+    model = await getSingleData(context, szId, date);
     loading = false;
 
     notifyListeners();
   }
 }
 
-Future<user> getSingleData(context, szId, szPassword) async{
-  user result = user();
+Future<Callplan> getSingleData(context, szId, date) async{
+  Callplan result = Callplan();
+  // date = "08/08/2022";
   try{
-    final response = await http.post(
-      Uri.parse(constant.szAPI + 'login'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(<String, String>{
-        'szId': szId,
-        'szPassword': szPassword
-      }),
+    final response = await http.get(
+      Uri.parse(constant.szAPI + 'getCallPlan'
+          + '?'
+          +'szEmployeeId=' + szId.toString()
+          + '&'
+          +'dtmDoc='
+          + date.toString()
+      ),
     );
 
     if (response.statusCode == 200) {
@@ -38,7 +37,8 @@ Future<user> getSingleData(context, szId, szPassword) async{
       String msg = json['szMessage'];
 
       if (json['szStatus'] == "success") {
-        result = user.fromJson(json['oResult']);
+        var data = json['oResult'];
+        result = Callplan.fromJson(data[0]);
       }else{
         print(msg);
       }

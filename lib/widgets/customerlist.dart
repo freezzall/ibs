@@ -15,8 +15,8 @@ class _customerlistState extends State<customerlist> {
   Widget build(BuildContext context) {
     var item = widget.item;
 
-    return SizedBox(
-        height: 180,
+    return Expanded(
+      flex: 1,
         child:
         ListView.builder(
           shrinkWrap: true,
