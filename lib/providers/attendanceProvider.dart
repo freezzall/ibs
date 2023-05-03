@@ -16,13 +16,52 @@ class AttendanceProvider with ChangeNotifier {
 
     notifyListeners();
   }
+
+  postData(context, attendance) async{
+    loading = true;
+    model = await postingData(context, attendance);
+    loading = false;
+
+    notifyListeners();
+  }
 }
+
+Future<Attendance> postingData(context, att) async{
+  Attendance result = Attendance();
+  try{
+    var dataInput = att.toJson();
+    var  input = jsonEncode(dataInput);
+    final response = await http.post(
+      Uri.parse( await constant.szAPI() + 'SaveAttendance'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: input,
+    );
+
+    if (response.statusCode == 200) {
+      Map<String, dynamic> json = jsonDecode(response.body);
+      String msg = json['szMessage'];
+
+      if (json['szStatus'] == "success")   {
+        var data = json['oResult'];
+        result = Attendance.fromJson(data);
+      }else{
+        print(msg);
+      }
+    }
+  }catch(e){
+    print(e);
+  }
+  return result;
+}
+
 
 Future<Attendance> getSingleData(context, szId) async{
   Attendance result = Attendance();
   try{
     final response = await http.get(
-      Uri.parse(constant.szAPI + 'GetAttendance'
+      Uri.parse(await constant.szAPI() + 'GetAttendance'
           + '?'
           +'szEmployeeId=' + szId.toString()
       ),

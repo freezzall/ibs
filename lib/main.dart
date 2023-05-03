@@ -3,6 +3,10 @@ import 'package:ibsmobile/data/user.dart';
 import 'package:ibsmobile/pages/splashscreen.dart';
 import 'package:ibsmobile/providers/attendanceProvider.dart';
 import 'package:ibsmobile/providers/callPlanProvider.dart';
+import 'package:ibsmobile/providers/customersProvider.dart';
+import 'package:ibsmobile/providers/messageProvider.dart';
+import 'package:ibsmobile/providers/surveyDetailProvider.dart';
+import 'package:ibsmobile/providers/surveyProvider.dart';
 import 'package:ibsmobile/providers/userProvider.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
@@ -20,6 +24,10 @@ List<SingleChildWidget> providers = [
   ChangeNotifierProvider(create: (_) => userProvider()),
   ChangeNotifierProvider(create: (_) => callplanProvider()),
   ChangeNotifierProvider(create: (_) => AttendanceProvider()),
+  ChangeNotifierProvider(create: (_) => CustomersProvider()),
+  ChangeNotifierProvider(create: (_) => surveyProvider()),
+  ChangeNotifierProvider(create: (_) => surveyDetailProvider()),
+  ChangeNotifierProvider(create: (_) => MessageProvider())
 ];
 
 class MyApp extends StatelessWidget {
@@ -28,6 +36,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         //primarySwatch: Colors.grey,
       ),

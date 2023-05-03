@@ -15,7 +15,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.0.0+1
+version: 1.0.1+1
 
 environment:
   sdk: ">=2.17.3 <3.0.0"
@@ -30,15 +30,32 @@ dependencies:
   flutter:
     sdk: flutter
   easy_splash_screen:
+  date_picker_timeline:
+  calendar_timeline:
+  cool_alert: ^1.1.0
+  uuid: ^3.0.6
+  animated_overflow: ^2.0.0
+  badges: ^2.0.3
+  geolocator: ^7.0.0
+  google_maps_flutter: ^2.1.12
+  map_launcher: ^2.3.0
+  flutter_svg: ^1.1.4
+  intl: ^0.17.0
+  animated_toggle_switch: ^0.5.2
+  cupertino_date_textbox: ^1.0.1
+  package_info_plus: ^1.0.6
+  hexcolor: ^3.0.1
 
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
   http: ^0.13.5
-  flutter_hooks: ^0.18.5+1
   provider: ^6.0.3
-  toast: ^0.3.0
+  image: ^3.2.0
+  path_provider: ^2.0.11
+  image_picker: ^0.8.5
+  shared_preferences: ^2.0.15
 
 dev_dependencies:
   flutter_test:
@@ -51,6 +68,12 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^2.0.0
   fluent_ui: ^3.10.0
+  flutter_launcher_icons: ^0.10.0
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "images/icon.png"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

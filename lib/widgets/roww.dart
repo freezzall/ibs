@@ -3,9 +3,10 @@ import 'package:flutter/cupertino.dart';
 class roww extends StatelessWidget {
   final String? title;
   final String? value;
+  final bool? bBold;
 
   const roww({
-    this.title, this.value
+    this.title, this.value, this.bBold
   });
 
   @override
@@ -13,8 +14,8 @@ class roww extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(title!, style: TextStyle(fontSize: 16),),
-        Text(value!, style: TextStyle(fontSize: 16),),
+        Text(title!, style: TextStyle(fontSize: 16 , fontWeight: bBold != null ? FontWeight.bold : FontWeight.normal),),
+        Text(value!, style: TextStyle(fontSize: 16, fontWeight: bBold != null ? FontWeight.bold : FontWeight.normal),),
       ],
     );
   }

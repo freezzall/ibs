@@ -1,17 +1,22 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:badges/badges.dart';
+import 'package:cool_alert/cool_alert.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:ibsmobile/data/attendance.dart';
 import 'package:ibsmobile/data/callplan.dart';
 import 'package:ibsmobile/constants/constant.dart';
 
 import 'package:http/http.dart' as http;
 import 'package:ibsmobile/data/user.dart';
+import 'package:ibsmobile/pages/addnewcallplan.dart';
+import 'package:ibsmobile/pages/dailynews.dart';
 import 'package:ibsmobile/providers/attendanceProvider.dart';
 import 'package:ibsmobile/providers/callPlanProvider.dart';
+import 'package:ibsmobile/providers/messageProvider.dart';
 import 'package:ibsmobile/widgets/button.dart';
 import 'package:ibsmobile/widgets/card.dart';
 import 'package:ibsmobile/widgets/customerlist.dart';
@@ -34,15 +39,28 @@ class _homePageState extends State<homePage> {
 
   late Callplan objCallplan = new Callplan();
   late Attendance objAttendance = new Attendance();
+  List<DailyNews> listMessages = [];
 
   String alert = "";
+  int intMessage = 0;
+
+  //location variabel
+  bool servicestatus = false;
+  bool haspermission = false;
+  late LocationPermission permission;
+  late Position position;
+  String long = "", lat = "";
+  late StreamSubscription<Position> positionStream;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    checkGps();
+
     final callplan = Provider.of<callplanProvider>(context, listen: false);
     final attendance = Provider.of<AttendanceProvider>(context, listen: false);
+
     callplan.getData(
         context,
         widget.objUser!.szId,
@@ -52,12 +70,149 @@ class _homePageState extends State<homePage> {
     );
 
     attendance.getData(context, widget.objUser!.szId);
+
+    if(callplan.model.dailyNews != null) {
+      intMessage = callplan.model.dailyNews!.where(
+              (element) => !element.bRead!).length;
+      listMessages.addAll(callplan.model.dailyNews!);
+    }
+
+  }
+
+  addNew(){
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => addnewcallplan(objUser: widget.objUser)),
+    );
   }
 
   @override
   void dispose() {
     // TODO: implement initState
     super.dispose();
+  }
+
+  checkGps() async {
+    servicestatus = await Geolocator.isLocationServiceEnabled();
+    if(servicestatus){
+      permission = await Geolocator.checkPermission();
+
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          print('Location permissions are denied');
+        }else if(permission == LocationPermission.deniedForever){
+          print("'Location permissions are permanently denied");
+        }else{
+          haspermission = true;
+        }
+      }else{
+        haspermission = true;
+      }
+
+      if(haspermission){
+        setState(() {
+          //refresh the UI
+        });
+
+        getLocation();
+      }
+    }else{
+      print("GPS Service is not enabled, turn on GPS location");
+    }
+
+    setState(() {
+      //refresh the UI
+    });
+  }
+
+  getLocation() async {
+    position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high
+    );
+    print(position.longitude); //Output: 80.24599079
+    print(position.latitude); //Output: 29.6593457
+
+    long = position.longitude.toString();
+    lat = position.latitude.toString();
+  }
+
+  setAbsensiPagi() async {
+    final attendance = Provider.of<AttendanceProvider>(context, listen: false);
+    objAttendance.bAttedancePagi = true;
+    objAttendance.dtmAttedancePagi = DateTime.now().toIso8601String();
+    await checkGps();
+    objAttendance.szLatitudePagi = lat;
+    objAttendance.szLongitudePagi = long;
+    attendance.postData(context, objAttendance);
+  }
+
+  Future dialog(context, title, onTap) {
+    return CoolAlert.show(
+      context: context,
+      type: CoolAlertType.confirm,
+      title: "Confirmation",
+      widget: Text(
+        title
+      ),
+      onConfirmBtnTap: onTap
+    );
+  }
+
+  setAbsensiSore() async{
+    final attendance = Provider.of<AttendanceProvider>(context, listen: false);
+    objAttendance.bAttedanceSore = true;
+    objAttendance.dtmAttedanceSore = DateTime.now().toIso8601String();
+    await checkGps();
+    objAttendance.szLatitudeSore = lat;
+    objAttendance.szLongitudeSore = long;
+    attendance.postData(context, objAttendance);
+  }
+
+  List<Widget> getTodayPerformance(){
+    if(objCallplan.todayPerformance != null){
+      return [
+        Align(alignment: Alignment.topLeft , child: Text("Call Plan Hari ini", style: TextStyle(fontWeight: FontWeight.bold))),
+        roww(title: "Target", value: objCallplan.todayPerformance!.target.toString()),
+        roww(title: "Sukses", value: objCallplan.todayPerformance!.sukses.toString()),
+        roww(title: "Gagal", value: objCallplan.todayPerformance!.gagal.toString()),
+        roww(title: "Belum", value: objCallplan.todayPerformance!.belum.toString()),
+        roww(title: "Extra Call", value: objCallplan.todayPerformance!.extraCall.toString()),
+      ];
+    }else{
+      String szZero = "0";
+      return [
+        Align(alignment: Alignment.topLeft , child: Text("Call Plan Hari ini", style: TextStyle(fontWeight: FontWeight.bold))),
+        roww(title: "Target", value: szZero),
+        roww(title: "Sukses", value: szZero),
+        roww(title: "Gagal", value: szZero),
+        roww(title: "Belum", value: szZero),
+        roww(title: "Extra Call", value: szZero),
+      ];
+    }
+  }
+
+  List<Widget> getMonthlyPerformance(){
+    if(objCallplan.monthlyPerformance!=null){
+      return [
+        Align(alignment: Alignment.topLeft , child: Text("MTD Performance", style: TextStyle(fontWeight: FontWeight.bold))),
+        roww(title: "Target", value: objCallplan.monthlyPerformance!.target.toString()),
+        roww(title: "Sukses", value: objCallplan.monthlyPerformance!.sukses.toString()),
+        roww(title: "Gagal", value: objCallplan.monthlyPerformance!.gagal.toString()),
+        roww(title: "Tidak Dikunjungi", value: objCallplan.monthlyPerformance!.tidakDiKunjungi.toString()),
+        roww(title: "Effective", value: objCallplan.monthlyPerformance!.effective.toString()),
+      ];
+    }else{
+      String szZero = "0";
+      return [
+        Align(alignment: Alignment.topLeft , child: Text("MTD Performance", style: TextStyle(fontWeight: FontWeight.bold))),
+        roww(title: "Target", value: szZero),
+        roww(title: "Sukses", value: szZero),
+        roww(title: "Gagal", value: szZero),
+        roww(title: "Tidak Dikunjungi", value: szZero),
+        roww(title: "Effective", value: szZero),
+      ];
+    }
   }
 
   Widget CustomerUI() {
@@ -99,7 +254,7 @@ class _homePageState extends State<homePage> {
                           ),
                         ),
                         FloatingActionButton(
-                          onPressed: () {},
+                          onPressed: addNew,
                           mini: true,
                           elevation: 0,
                           backgroundColor: Colors.white,
@@ -129,9 +284,29 @@ class _homePageState extends State<homePage> {
                     shape: BoxShape.circle
                 ),
                 child: InkWell(
-                  onTap: (){},
+                  onTap: (){
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => dailynews(
+                          listMessages: listMessages)
+                      ),
+                    );
+                  },
                   child: Center(
-                    child: Icon(Icons.mail,size: 35, color: Colors.white,),
+                    child: Badge(
+                      badgeColor: c,
+                      showBadge: intMessage == 0 ? false : true,
+                      badgeContent: Text(
+                        "${intMessage}",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold
+                        ),
+                      ),
+                      child: Icon(Icons.mail, size: 35, color: Colors.white),
+                    ),
+                    // child: Icon(Icons.mail,size: 35, color: Colors.white,),
                   ),
                 ),
               ),
@@ -147,7 +322,7 @@ class _homePageState extends State<homePage> {
                   style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
                 ),
                 FloatingActionButton(
-                  onPressed: () {},
+                  onPressed: addNew,
                   mini: true,
                   elevation: 0,
                   backgroundColor: Colors.white,
@@ -161,32 +336,18 @@ class _homePageState extends State<homePage> {
                 card(
                   child:
                   Column(
-                    children: [
-                      Align(alignment: Alignment.topLeft , child: Text("Call Plan Hari ini", style: TextStyle(fontWeight: FontWeight.bold))),
-                      roww(title: "Target", value: objCallplan.todayPerformance!.target.toString()),
-                      roww(title: "Sukses", value: objCallplan.todayPerformance!.sukses.toString()),
-                      roww(title: "Gagal", value: objCallplan.todayPerformance!.gagal.toString()),
-                      roww(title: "Belum", value: objCallplan.todayPerformance!.belum.toString()),
-                      roww(title: "Extra Call", value: objCallplan.todayPerformance!.extraCall.toString()),
-                    ],
+                    children: getTodayPerformance(),
                   ),
                 ),
                 card(
                   child: Column(
-                    children: [
-                      Align(alignment: Alignment.topLeft , child: Text("MTD Performance", style: TextStyle(fontWeight: FontWeight.bold))),
-                      roww(title: "Target", value: objCallplan.monthlyPerformance!.target.toString()),
-                      roww(title: "Sukses", value: objCallplan.monthlyPerformance!.sukses.toString()),
-                      roww(title: "Gagal", value: objCallplan.monthlyPerformance!.gagal.toString()),
-                      roww(title: "Tidak Dikunjungi", value: objCallplan.monthlyPerformance!.tidakDiKunjungi.toString()),
-                      roww(title: "Effective", value: objCallplan.monthlyPerformance!.effective.toString()),
-                    ],
+                    children: getMonthlyPerformance(),
                   ),
                 ),
               ],
             ),
 
-            AbsensiUI()
+            AbsensiUI(),
           ],
         ),
       );
@@ -196,7 +357,7 @@ class _homePageState extends State<homePage> {
     return card(
       width: MediaQuery.of(context).size.width,
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text("Absensi",
             style: TextStyle(
@@ -207,24 +368,52 @@ class _homePageState extends State<homePage> {
           Row(
             children: [
               if(objAttendance.bAttedancePagi != null)
-                button(
-                    text: "PAGI",
-                    onTap: () {
-                      objAttendance.bAttedancePagi = true;
-                    },
-                    color: !objAttendance.bAttedancePagi! ? null : Colors.grey
+                Expanded(
+                  child: Container(
+                    child: MaterialButton(
+                      child: Text("PAGI"),
+                      textColor: Colors.white,
+                      disabledTextColor: Colors.white,
+                      color: Colors.green,
+                      disabledColor: Colors.grey,
+                      onPressed: !objAttendance.bAttedancePagi! ?
+                      () => dialog(
+                          context,
+                          "Morning Attendance", () async {
+                            await setAbsensiPagi();
+                            Navigator.pop(context);
+                          }) : null
+                    ),
+                  ),
                 ),
+
               SizedBox(width: 10),
               if(objAttendance.bAttedanceSore != null)
-                button(
-                    text: "SORE",
-                    onTap: () {
-                      objAttendance.bAttedanceSore = true;
-                    },
-                    color: !objAttendance.bAttedanceSore! && objAttendance.bAttedancePagi!  ? null : Colors.grey
+                Expanded(
+                  child: Container(
+                    child: MaterialButton(
+                      child: Text("SORE"),
+                        textColor: Colors.white,
+                        disabledTextColor: Colors.white,
+                        color: Colors.green,
+                        disabledColor: Colors.grey,
+                        onPressed: !objAttendance.bAttedanceSore! ?
+                        () => dialog(
+                          context,
+                          "Afternoon Attendance", () async {
+                          await setAbsensiSore();
+                          Navigator.pop(context);
+                        }): null
+                    ),
+                  ),
                 ),
             ],
-          )
+          ),
+
+          // Text(servicestatus? "GPS is Enabled": "GPS is disabled."),
+          // Text(haspermission? "GPS is Enabled": "GPS is disabled."),
+          // Text("Longitude: $long", style:TextStyle(fontSize: 20)),
+          // Text("Latitude: $lat", style: TextStyle(fontSize: 20),)
 
         ],
       ),
@@ -244,25 +433,33 @@ class _homePageState extends State<homePage> {
         decoration: BoxDecoration(
             image: DecorationImage(
                 alignment: Alignment.topLeft,
-                image: AssetImage("images/header.png"), fit: BoxFit.fitWidth)),
+                image: AssetImage("images/header.png"),
+                fit: BoxFit.fitWidth,
+                opacity: 0.5
+            )
+        ),
         child: Scaffold(
           backgroundColor: Colors.transparent,
           appBar: AppBar(
-            title: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text("Halo, ", style: TextStyle(color: Colors.black, fontWeight: FontWeight.normal),),
-                Text(widget.objUser!.szName.toString(), style: TextStyle(color: Colors.black,  fontWeight: FontWeight.bold),),
-              ],
+            leadingWidth: MediaQuery.of(context).size.width,
+            leading: Padding(
+              padding: const EdgeInsets.only(left: 8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("Halo, ", style: TextStyle(color: Colors.white, fontWeight: FontWeight.normal, fontSize: 20),),
+                  Text(widget.objUser!.szName.toString(), style: TextStyle(color: Colors.white,  fontWeight: FontWeight.bold, fontSize: 20),),
+                ],
+              ),
             ),
             actions: [
               Padding(
-                padding: const EdgeInsets.all(5.0),
+                padding: const EdgeInsets.only(right: 8.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text("Cabang ", style: TextStyle(color: Colors.black, fontSize: 20),),
-                    Text(widget.objUser!.szBranchNm.toString(), style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 20),),
+                    Text("Cabang ", style: TextStyle(color: Colors.white, fontSize: 20),),
+                    Text(widget.objUser!.szBranchNm.toString(), style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),),
                   ],
                 ),
               )

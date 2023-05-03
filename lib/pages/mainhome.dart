@@ -20,7 +20,6 @@ class _mainhomePageState extends State<mainhomePage> {
   List<Widget> _screens() =>
       [
         homePage(objUser: widget.objUser),
-        aboutPage(),
         settingPage(),
         logoutPage(),
       ];
@@ -48,10 +47,6 @@ class _mainhomePageState extends State<mainhomePage> {
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.description),
-            label: 'About',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),

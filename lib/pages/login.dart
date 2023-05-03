@@ -37,7 +37,7 @@ class _loginPageState extends State<loginPage> {
 
   Future<bool> doLogin(String szId, String szPassword) async {
     final response = await http.post(
-      Uri.parse(constant.szAPI + 'login'),
+      Uri.parse(await constant.szAPI() + 'login'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },

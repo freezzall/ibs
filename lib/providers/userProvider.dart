@@ -4,7 +4,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:ibsmobile/data/user.dart';
 import 'package:http/http.dart' as http;
 import 'package:ibsmobile/constants/constant.dart';
-import 'package:toast/toast.dart';
 
 class userProvider with ChangeNotifier {
   user model = user();
@@ -23,7 +22,7 @@ Future<user> getSingleData(context, szId, szPassword) async{
   user result = user();
   try{
     final response = await http.post(
-      Uri.parse(constant.szAPI + 'login'),
+      Uri.parse(await constant.szAPI() + 'login'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
